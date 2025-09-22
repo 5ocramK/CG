@@ -231,7 +231,7 @@ function main() {
       setColor(parseInt(k));
     } else if (mode === "thickness" && k >= "1" && k <= "9") {
       // utiliza 1..9 como espessuras pequenas; aqui multiplicamos pra ficar perceptível
-      // você pode ajustar o fator multiplicador se quiser mais/menos grosso
+      // ajustar o fator multiplicador se quiser mais/menos grosso
       const val = parseInt(k); // 1..9
       setThickness(val * 2);   // multiplica por 2 para dar mais variação
     }
@@ -241,8 +241,9 @@ function main() {
   gl.clearColor(1, 1, 1, 1); // fundo branco
   gl.clear(gl.COLOR_BUFFER_BIT);
   setMode("line");
-  // definimos uniformes iniciais (já setados acima) e desenhamos a linha inicial
+  // define uniformes iniciais e desenha a linha inicial
   drawLineBresenham([0, 0], [0, 0]);
 }
 
 main();
+
