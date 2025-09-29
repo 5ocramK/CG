@@ -99,26 +99,55 @@ function drawCircle(gl, program, centerX, centerY, radius, segments, color) {
     gl.drawArrays(gl.TRIANGLE_FAN, 0, verticesArray.length / 2);
 }
 
-// Limpar tela
-gl.viewport(0, 0, canvas.width, canvas.height);
-gl.clearColor(0.0, 0.0, 0.0, 1.0);
-gl.clear(gl.COLOR_BUFFER_BIT);
 
 // Cores
 const azul = [0.0, 0.5, 1.0, 1.0];     // azul
-const azulclaro = [0.0, 0.7, 0.9, 1.0];    // azul claro
+const azulclaro = [0.0, 0.7, 0.9, 1.0];// azul claro
 const cinza = [0.0, 0.0, 0.0, 0.5];    // cinza
-const amarelo = [1.0, 1.0, 0.0, 1.0];// amarelo
+const amarelo = [1.0, 1.0, 0.0, 1.0];  // amarelo
 
-// Corpo do carro
-drawRectangle(gl, program, -0.4, 0.0, 0.8, 0.2, azul);
+// Animação do carro
 
-// Cabine
-drawRectangle(gl, program, -0.25, 0.2, 0.5, 0.2, azulclaro);
+let carX = 0;       // posição inicial
+let speed = 0;      // velocidade atual
 
-// Rodas
-drawCircle(gl, program, -0.25, -0.2, 0.08, 30, cinza); // roda esquerda
-drawCircle(gl, program, 0.25, -0.2, 0.08, 30, cinza);  // roda direita
+// Controle de teclas
+document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") {
+        speed = 0.01;
+    }
+    if (e.key === "ArrowLeft") {
+        speed = -0.01;
+    }
+});
+document.addEventListener("keyup", () => {
+    speed = 0;
+});
 
-//farol
-drawCircle(gl, program, 0.4, -0.1, 0.05, 20, amarelo);
+// Função de renderização
+function render() {
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Atualiza posição
+    carX += speed;
+
+    // Corpo do carro
+    drawRectangle(gl, program, -0.4 + carX, 0.0, 0.8, 0.2, azul);
+
+    // Cabine
+    drawRectangle(gl, program, -0.25 + carX, 0.2, 0.5, 0.2, azulclaro);
+
+    // Rodas
+    drawCircle(gl, program, -0.25 + carX, -0.2, 0.08, 30, cinza); // roda esquerda
+    drawCircle(gl, program, 0.25 + carX, -0.2, 0.08, 30, cinza);  // roda direita
+
+    // Farol
+    drawCircle(gl, program, 0.4 + carX, -0.1, 0.05, 20, amarelo);
+
+    requestAnimationFrame(render);
+}
+
+// Inicia loop
+render();
