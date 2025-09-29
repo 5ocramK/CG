@@ -1,135 +1,137 @@
-// Preparação do WebGL
-const canvas = document.getElementById("meuCanvas");
-const gl = canvas.getContext("webgl");
-if (!gl) {
-    alert("WebGL não suportado!");
-}
+function main() {
+    const canvas = document.getElementById("meuCanvas");
+    const gl = canvas.getContext("webgl");
 
-// Vertex Shader
-const vertexShaderSource = `
-attribute vec4 a_position;
-void main() {
-    gl_Position = a_position;
-}
-`;
-
-// Fragment Shader com uniform de cor
-const fragmentShaderSource = `
-precision mediump float;
-uniform vec4 u_color;
-void main() {
-    gl_FragColor = u_color;
-}
-`;
-
-// Função para compilar shaders
-function compileShader(gl, type, source) {
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error("Erro no shader:", gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
+    if (!gl) {
+        alert("WebGL não suportado");
+        return;
     }
-    return shader;
-}
 
-const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+    // Shaders
+    const vertexShaderSource = `
+        attribute vec2 a_position;
+        uniform float u_angle;
+        void main() {
+            float cosA = cos(u_angle);
+            float sinA = sin(u_angle);
+            mat2 rotation = mat2(cosA, -sinA, sinA, cosA);
+            vec2 rotated = rotation * a_position;
+            gl_Position = vec4(rotated, 0, 1);
+        }
+    `;
 
-// Programa
-const program = gl.createProgram();
-gl.attachShader(program, vertexShader);
-gl.attachShader(program, fragmentShader);
-gl.linkProgram(program);
-if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    console.error("Erro ao criar programa:", gl.getProgramInfoLog(program));
-}
-gl.useProgram(program);
+    const fragmentShaderSource = `
+        precision mediump float;
+        uniform vec4 u_color;
+        void main() {
+            gl_FragColor = u_color;
+        }
+    `;
 
-// Função para desenhar retângulo
-function drawRectangle(gl, program, x, y, width, height, color) {
-    const vertices = new Float32Array([
-        x, y,
-        x + width, y,
-        x, y - height,
-        x, y - height,
-        x + width, y,
-        x + width, y - height,
-    ]);
-
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-    const positionLocation = gl.getAttribLocation(program, "a_position");
-    gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-    const colorLocation = gl.getUniformLocation(program, "u_color");
-    gl.uniform4fv(colorLocation, color);
-
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-}
-
-// Função para desenhar triângulo
-function drawTriangle(gl, program, x1, y1, x2, y2, x3, y3, color) {
-    const vertices = new Float32Array([x1, y1, x2, y2, x3, y3]);
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-    const positionLocation = gl.getAttribLocation(program, "a_position");
-    gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-    const colorLocation = gl.getUniformLocation(program, "u_color");
-    gl.uniform4fv(colorLocation, color);
-
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-}
-
-// Função para desenhar círculo
-function drawCircle(gl, program, centerX, centerY, radius, segments, color) {
-    const vertices = [];
-    vertices.push(centerX, centerY);
-    for (let i = 0; i <= segments; i++) {
-        const angle = (i / segments) * 2 * Math.PI;
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
-        vertices.push(x, y);
+    // Funções auxiliares
+    function createShader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        return shader;
     }
-    const verticesArray = new Float32Array(vertices);
 
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, verticesArray, gl.STATIC_DRAW);
+    function createProgram(gl, vertexShader, fragmentShader) {
+        const program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        return program;
+    }
+
+    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+    const program = createProgram(gl, vertexShader, fragmentShader);
+    gl.useProgram(program);
 
     const positionLocation = gl.getAttribLocation(program, "a_position");
-    gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
     const colorLocation = gl.getUniformLocation(program, "u_color");
-    gl.uniform4fv(colorLocation, color);
+    const angleLocation = gl.getUniformLocation(program, "u_angle");
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, verticesArray.length / 2);
+    function drawShape(vertices, color, mode, angle) {
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        gl.uniform4fv(colorLocation, color);
+        gl.uniform1f(angleLocation, angle);
+
+        gl.drawArrays(mode, 0, vertices.length / 2);
+    }
+
+    function drawCircle(x, y, radius, segments, color, angle) {
+        const vertices = [x, y];
+        for (let i = 0; i <= segments; i++) {
+            const a = (i / segments) * 2 * Math.PI;
+            vertices.push(x + radius * Math.cos(a), y + radius * Math.sin(a));
+        }
+        drawShape(vertices, color, gl.TRIANGLE_FAN, angle);
+    }
+
+    // Animação
+    let rotation = 0;
+
+    function render() {
+        gl.clearColor(1, 1, 1, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Haste
+        drawShape([
+            -0.03, -1.0,
+             0.03, -1.0,
+             0.03,  0.0,
+            -0.03,  0.0
+        ], [0.7, 0.7, 0.7, 1], gl.TRIANGLE_FAN, 0);
+
+        // Pás do catavento
+        const colors = [
+            [1.0, 0.5, 0.0, 1.0], // laranja
+            [0.0, 0.5, 1.0, 1.0], // azul
+            [1.0, 0.5, 0.0, 1.0],
+            [0.0, 0.5, 1.0, 1.0]
+        ];
+
+        const bladeSize = 0.4;
+
+        for (let i = 0; i < 4; i++) {
+            const angle = i * Math.PI / 2;
+
+            // Retângulo da pá
+            const rect = [
+                0.0, 0.0,
+                bladeSize * Math.cos(angle), bladeSize * Math.sin(angle),
+                (bladeSize + 0.2) * Math.cos(angle + 0.2), (bladeSize + 0.2) * Math.sin(angle + 0.2),
+                0.0, 0.0
+            ];
+            drawShape(rect, colors[i], gl.TRIANGLE_FAN, rotation);
+
+            // Triângulo da ponta
+            const tri = [
+                bladeSize * Math.cos(angle), bladeSize * Math.sin(angle),
+                (bladeSize + 0.2) * Math.cos(angle - 0.2), (bladeSize + 0.2) * Math.sin(angle - 0.2),
+                (bladeSize + 0.2) * Math.cos(angle + 0.2), (bladeSize + 0.2) * Math.sin(angle + 0.2)
+            ];
+            drawShape(tri, colors[i], gl.TRIANGLES, rotation);
+        }
+
+        // Centro do catavento
+        drawCircle(0, 0, 0.05, 30, [1, 1, 0, 1], rotation);
+
+        // Ângulo muda
+        rotation += 0.02;
+
+        requestAnimationFrame(render);
+    }
+
+    render();
 }
 
-// Limpar tela
-gl.viewport(0, 0, canvas.width, canvas.height);
-gl.clearColor(0.0, 0.0, 0.0, 1.0);
-gl.clear(gl.COLOR_BUFFER_BIT);
-
-// Cores
-const azul = [0.0, 0.5, 1.0, 1.0];     // azul
-const azulclaro = [0.0, 0.7, 0.9, 1.0];    // azul claro
-const cinza = [0.0, 0.0, 0.0, 0.5];    // cinza
-const amarelo = [1.0, 1.0, 0.0, 1.0];// amarelo
-const laranja = [1.0, 0.8, 0.0, 1.0];// laranja
-
-drawCircle(gl, program, 0, 0, 0.1, 20, cinza)
-
-// Laminas do catavento
-drawRectangle(gl, program, 0.1, 0.1, 0.3, 0.2, amarelo)
-drawTriangle(gl, program, 0.15, 0.1, 0.3, 0.1, 0.15, -0.3, laranja )
+main();
