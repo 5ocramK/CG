@@ -115,24 +115,46 @@ gl.clear(gl.COLOR_BUFFER_BIT);
 const red = [1.0, 0.0, 0.0, 1.0];
 const blue = [0.0, 0.0, 1.0, 1.0];
 const yellow = [1.0, 1.0, 0.0, 1.0];
-
-// Desenhar robô
-// Cabeça
-drawRectangle(gl, program, -0.15, 0.5, 0.3, 0.2, blue);
-// Corpo
-drawRectangle(gl, program, -0.25, 0.3, 0.5, 0.4, red);
-// Braços
-drawRectangle(gl, program, -0.35, 0.3, 0.1, 0.4, yellow); // braço esquerdo
-drawRectangle(gl, program, 0.25, 0.3, 0.1, 0.4, yellow);  // braço direito
-// Pernas
-drawRectangle(gl, program, -0.15, -0.1, 0.1, 0.3, yellow); // perna esquerda
-drawRectangle(gl, program, 0.05, -0.1, 0.1, 0.3, yellow);  // perna direita
-
 const white = [1.0, 1.0, 1.0, 1.0];
 const black = [0.0, 0.0, 0.0, 1.0];
 
-// Olho esquerdo
-drawCircle(gl, program, -0.08, 0.4, 0.03, 30, white);
+// Animação
+let offsetX = 0;
+let offsetY = 0;
 
-// Olho direito
-drawCircle(gl, program, 0.08, 0.4, 0.03, 30, white);
+
+function drawScene() {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Cabeça
+    drawRectangle(gl, program, -0.15 + offsetX, 0.5 + offsetY, 0.3, 0.2, blue);
+    // Corpo
+    drawRectangle(gl, program, -0.25 + offsetX, 0.3 + offsetY, 0.5, 0.4, red);
+    // Braços
+    drawRectangle(gl, program, -0.35 + offsetX, 0.3 + offsetY, 0.1, 0.4, yellow); // esquerdo
+    drawRectangle(gl, program, 0.25 + offsetX, 0.3 + offsetY, 0.1, 0.4, yellow);  // direito
+    // Pernas
+    drawRectangle(gl, program, -0.15 + offsetX, -0.1 + offsetY, 0.1, 0.3, yellow); // esquerda
+    drawRectangle(gl, program, 0.05 + offsetX, -0.1 + offsetY, 0.1, 0.3, yellow);  // direita
+
+    // Olhos
+    drawCircle(gl, program, -0.08 + offsetX, 0.4 + offsetY, 0.03, 30, white);
+    drawCircle(gl, program, 0.08 + offsetX, 0.4 + offsetY, 0.03, 30, white);
+}
+document.addEventListener("keydown", (event) => {
+    const step = 0.05; // velocidade de movimento
+
+    if (event.key === "ArrowUp") {
+        offsetY += step;
+    } else if (event.key === "ArrowDown") {
+        offsetY -= step;
+    } else if (event.key === "ArrowLeft") {
+        offsetX -= step;
+    } else if (event.key === "ArrowRight") {
+        offsetX += step;
+    }
+
+    drawScene();
+});
+
+drawScene();
