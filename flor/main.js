@@ -137,3 +137,57 @@ drawFlower(gl, program,
     pink,           // cor das pétalas
     yellow          // cor do centro
 );
+
+//  Animação
+
+let time = 0; // tempo
+
+function drawFlower(gl, program, centerX, centerY, petalCount, petalLength, petalWidth, centerRadius, petalColor, centerColor) {
+    const angleStep = (2 * Math.PI) / petalCount;
+
+    for (let i = 0; i < petalCount; i++) {
+        const angle = i * angleStep;
+
+        // Vértices do triângulo da pétala
+        const x1 = centerX;
+        const y1 = centerY;
+        const x2 = centerX + Math.cos(angle) * petalLength - Math.sin(angle) * (petalWidth/2);
+        const y2 = centerY + Math.sin(angle) * petalLength + Math.cos(angle) * (petalWidth/2);
+        const x3 = centerX + Math.cos(angle) * petalLength + Math.sin(angle) * (petalWidth/2);
+        const y3 = centerY + Math.sin(angle) * petalLength - Math.cos(angle) * (petalWidth/2);
+
+        drawTriangle(gl, program, x1, y1, x2, y2, x3, y3, petalColor);
+
+        // Círculo na ponta da pétala
+        const tipX = (x2 + x3) / 2;
+        const tipY = (y2 + y3) / 2;
+        drawCircle(gl, program, tipX, tipY, petalWidth/2, 20, petalColor);
+    }
+
+    // Círculo central
+    drawCircle(gl, program, centerX, centerY, centerRadius, 30, centerColor);
+}
+
+// Função de animação
+function animate() {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Faz o comprimento variar no tempo
+    const dynamicLength = 0.4 + Math.sin(time) * 0.1;
+
+    drawFlower(gl, program,
+        0.0, 0.0,       // posição central
+        16,              // número de pétalas
+        dynamicLength,   // comprimento que pulsa
+        0.1,             // largura das pétalas
+        0.1,             // raio do círculo central
+        pink,            // cor das pétalas
+        yellow           // cor do centro
+    );
+
+    time += 0.05; // velocidade da pulsação
+    requestAnimationFrame(animate);
+}
+
+// Iniciar animação
+animate();
